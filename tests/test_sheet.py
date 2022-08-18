@@ -4,12 +4,31 @@
 
 import unittest
 
-from superspreader.simple import add_one
+from superspreader import BaseSheet
+from superspreader.exceptions import ImproperlyConfigured
 
 
-class TestSimple(unittest.TestCase):
-    def test_add_one(self):
-        self.assertEqual(add_one(5), 6)
+class TestSheet(unittest.TestCase):
+    def test_sheet_name(self):
+        class AlbumSheet(BaseSheet):
+            pass
+
+        with self.assertRaises(ImproperlyConfigured) as error:
+            AlbumSheet(path="test")
+
+    def test_path_or_file(self):
+        class AlbumSheet(BaseSheet):
+            pass
+
+        with self.assertRaises(ImproperlyConfigured) as error:
+            AlbumSheet()
+
+    def test_no_header_rows(self):
+        class AlbumSheet(BaseSheet):
+            header_rows = 0
+
+        with self.assertRaises(ImproperlyConfigured) as error:
+            AlbumSheet(path="test")
 
 
 if __name__ == "__main__":
