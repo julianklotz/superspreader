@@ -29,7 +29,7 @@ class TestFull(unittest.TestCase):
         sheet.load()
 
         for record in sheet:
-            print(record.artist)
+            print(record)
 
         print(sheet.errors)
 

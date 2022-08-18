@@ -3,7 +3,7 @@ from abc import ABC
 
 from openpyxl import load_workbook
 
-from .exceptions import ImproperlyConfigured
+from .exceptions import ImproperlyConfigured, ValidationException
 from .fields import BaseField
 
 
@@ -34,6 +34,7 @@ class BaseSheet(ABC):
 
     def load(self):
         header_rows = self.get_header_rows()
+        fields = self._build_field_list()
 
         sheet = self.__get_sheet()
 
@@ -46,8 +47,22 @@ class BaseSheet(ABC):
         if self.has_errors:
             return
 
-        for row_cells in sheet.iter_rows(min_row=header_rows + 1):
-            print(row_cells)
+        for row_index, row_cells in enumerate(sheet.iter_rows(min_row=header_rows + 1)):
+            row_dict = {}
+            for field in fields:
+                cell_index = column_map.get(field.source)
+
+                try:
+                    cell = row_cells[cell_index]
+                    try:
+                        row_dict[field.target] = field(cell.value)
+                    except ValidationException as error:
+                        row_dict[field.target] = None
+                        self._add_error(str(error), row_index + 1)
+                except KeyError:
+                    pass
+
+            self._rows.append(row_dict)
 
     def get_sheet_name(self):
         return self.sheet_name
@@ -101,12 +116,13 @@ class BaseSheet(ABC):
     def __len__(self):
         return len(self._rows)
 
-    def _get_fields(self):
+    def _build_field_list(self):
         if self._fields is None:
             self._fields = []
-            for attr, value in self.__class__.__dict__.items():
-                if isinstance(value, BaseField):
-                    self._fields.append(value)
+            for attr, field in self.__class__.__dict__.items():
+                if isinstance(field, BaseField):
+                    field.target = attr
+                    self._fields.append(field)
 
         return self._fields
 
@@ -134,7 +150,7 @@ class BaseSheet(ABC):
         return column_map
 
     def __check_column_map(self, column_map):
-        fields = self._get_fields()
+        fields = self._build_field_list()
         used_fields = set([field.source for field in fields])
         all_fields = set(column_map.keys())
 

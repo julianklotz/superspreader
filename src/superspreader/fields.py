@@ -7,6 +7,7 @@ class BaseField(ABC):
     def __init__(self, source, required=True):
         self.source = source
         self.required = required
+        self.target = None
 
     def __call__(self, value):
         self.value = value
