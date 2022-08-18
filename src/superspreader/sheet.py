@@ -15,7 +15,7 @@ class BaseSheet(ABC):
     def __init__(self, path=None, file=None):
         self.path = path
         self.file = file
-        self._fields = None
+        self._fields = self._build_fields()
         self._rows = []
         self._infos = []
         self._errors = []
@@ -32,10 +32,16 @@ class BaseSheet(ABC):
         if not self.sheet_name:
             raise ImproperlyConfigured("No sheet name set")
 
+    def shall_skip(self, row: dict):
+        values = row.values()
+        # When there’s at least one truthy value, don’t skip.
+        if any(values):
+            return False
+        return True
+
     def load(self):
         header_rows = self.get_header_rows()
-        fields = self._build_field_list()
-
+        fields = self._fields
         sheet = self.__get_sheet()
 
         if self.has_errors:
@@ -48,21 +54,28 @@ class BaseSheet(ABC):
             return
 
         for row_index, row_cells in enumerate(sheet.iter_rows(min_row=header_rows + 1)):
+
             row_dict = {}
-            for field in fields:
+            error_cache = []
+            for name, field in fields.items():
                 cell_index = column_map.get(field.source)
 
                 try:
                     cell = row_cells[cell_index]
                     try:
-                        row_dict[field.target] = field(cell.value)
+                        row_dict[name] = field(cell.value)
                     except ValidationException as error:
-                        row_dict[field.target] = None
-                        self._add_error(str(error), row_index + 1)
+                        row_dict[name] = None
+                        error_cache.append((str(error), row_index + header_rows))
                 except KeyError:
                     pass
 
-            self._rows.append(row_dict)
+            if self.shall_skip(row_dict):
+                self._add_info(f"Skipped row", index=row_index + header_rows)
+                continue
+            else:
+                self._rows.append(row_dict)
+                self._add_errors(error_cache)
 
     def get_sheet_name(self):
         return self.sheet_name
@@ -116,21 +129,32 @@ class BaseSheet(ABC):
     def __len__(self):
         return len(self._rows)
 
-    def _build_field_list(self):
-        if self._fields is None:
-            self._fields = []
-            for attr, field in self.__class__.__dict__.items():
-                if isinstance(field, BaseField):
-                    field.target = attr
-                    self._fields.append(field)
+    def _build_fields(self):
+        fields = {}
+        for attr, field in self.__class__.__dict__.items():
+            if isinstance(field, BaseField):
+                fields[attr] = field
 
-        return self._fields
+        return fields
 
     def _add_error(self, message, index=None):
         # Add to row index, if it’s related to a row.
         if isinstance(index, int):
-            message = f"Row {index + 1}: {message}"
+            message = f"Row {index + 2}: {message}"
         self._errors.append(message)
+
+    def _add_errors(self, errors):
+        for error in errors:
+            if isinstance(error, tuple):
+                error_len = len(error)
+                if error_len == 2:
+                    self._add_error(error[0], error[1])
+                elif error_len == 1:
+                    self._add_error(error[0])
+                else:
+                    raise ValueError("Error tuple too long.")
+            else:
+                self._add_error(error)
 
     def _add_info(self, message, index=None):
         # Add to row index, if it’s related to a row.
@@ -150,8 +174,8 @@ class BaseSheet(ABC):
         return column_map
 
     def __check_column_map(self, column_map):
-        fields = self._build_field_list()
-        used_fields = set([field.source for field in fields])
+        fields = self._build_fields()
+        used_fields = set([field.source for field in fields.values()])
         all_fields = set(column_map.keys())
 
         for field in used_fields:
