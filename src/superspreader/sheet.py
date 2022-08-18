@@ -33,15 +33,21 @@ class BaseSheet(ABC):
             raise ImproperlyConfigured("No sheet name set")
 
     def load(self):
-        wb = load_workbook(filename=self.path)
-        sheet_name = self.get_sheet_name()
-        try:
-            sheet_ranges = wb[sheet_name]
-        except KeyError:
-            self._add_error(f"There’s no sheet {sheet_name} in spreadsheet {self.path}")
+        header_rows = self.get_header_rows()
+
+        sheet = self.__get_sheet()
+
+        if self.has_errors:
             return
-        print(sheet_ranges)
-        fields = self._get_fields()
+
+        column_map = self.__column_map(sheet)
+        self.__check_column_map(column_map)
+
+        if self.has_errors:
+            return
+
+        for row_cells in sheet.iter_rows(min_row=header_rows + 1):
+            print(row_cells)
 
     def get_sheet_name(self):
         return self.sheet_name
@@ -115,3 +121,32 @@ class BaseSheet(ABC):
         if isinstance(index, int):
             message = f"Row {index + 1}: {message}"
         self._infos.append(message)
+
+    def __column_map(self, sheet):
+        column_map = {}
+        label_row = self.get_label_row()
+
+        for index, column in enumerate(
+            sheet.iter_cols(0, sheet.max_column, min_row=label_row, max_row=label_row)
+        ):
+            column_map[column[0].value] = index
+
+        return column_map
+
+    def __check_column_map(self, column_map):
+        fields = self._get_fields()
+        used_fields = set([field.source for field in fields])
+        all_fields = set(column_map.keys())
+
+        for field in used_fields:
+            if field not in all_fields:
+                self._add_error(f"Field {field} is missing in sheet")
+
+    def __get_sheet(self):
+        wb = load_workbook(filename=self.path)
+        sheet_name = self.get_sheet_name()
+
+        try:
+            return wb[sheet_name]
+        except KeyError:
+            self._add_error(f"There’s no sheet {sheet_name} in spreadsheet {self.path}")

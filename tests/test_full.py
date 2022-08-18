@@ -10,6 +10,7 @@ from superspreader import BaseSheet, fields
 class AlbumSheet(BaseSheet):
     sheet_name = "Albums"
     header_rows = 2
+    label_row = 2
 
     artist = fields.CharField(source="Artist")
     album = fields.CharField(source="Album")
