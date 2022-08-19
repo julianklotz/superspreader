@@ -15,7 +15,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 setup(
     name="superspreader",
     version="0.0.1",
-    description="Populate Django models from spreadsheets",
+    description="Load data from spreadsheets using a simple DSL",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/julianklotz/superspreader",
@@ -33,11 +33,11 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3 :: Only",
     ],
-    keywords="django, excel, spreadsheets, import, csv, tsv",
+    keywords="excel, spreadsheets, import, csv, tsv, openpyxl",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     python_requires=">=3.6, <4",
-    install_requires=["django>=2", "openpyxl>=3"],
+    install_requires=["openpyxl>=3"],
     use_scm_version=True,
     setup_requires=["setuptools_scm"],
     extras_require={
