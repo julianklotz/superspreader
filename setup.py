@@ -37,7 +37,9 @@ setup(
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     python_requires=">=3.6, <4",
-    install_requires=["django>=2", "openpyxl>=3"],  # Optional
+    install_requires=["django>=2", "openpyxl>=3"],
+    use_scm_version=True,
+    setup_requires=["setuptools_scm"],
     extras_require={
         "dev": ["pre-commit"],
         "test": ["coverage"],
