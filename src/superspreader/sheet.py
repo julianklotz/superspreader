@@ -24,7 +24,8 @@ class BaseSheet(ABC):
 
     def shall_skip(self, row: dict):
         """
-        Indicates whether to skip a row. It return True (i.e. skip) if there’s at least one truthy field.
+        Indicates whether to skip a row. It return True (i.e. skip) if there’s
+        at least one truthy field.
         :param row: A dictionary representing a row
         :return: boolean, skip or not
         """
@@ -52,7 +53,9 @@ class BaseSheet(ABC):
         if self.has_errors:
             return
 
-        for row_index, row_cells in enumerate(sheet.iter_rows(min_row=header_rows + 1)):
+        min_row = header_rows + 1
+
+        for row_index, row_cells in enumerate(sheet.iter_rows(min_row=min_row)):
             row_dict = {}
             error_cache = []
             for name, field in fields.items():
@@ -70,7 +73,7 @@ class BaseSheet(ABC):
 
             if self.shall_skip(row_dict):
 
-                self._add_info(f"Skipped row", index=row_index + header_rows)
+                self._add_info("Skipped row", index=row_index + header_rows)
                 continue
             else:
                 self._rows.append(row_dict)

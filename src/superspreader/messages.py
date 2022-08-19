@@ -13,7 +13,8 @@ messages = {
     },
     DE: {
         "field.wrong_type": (
-            "Das Feld %(field)s sollte den Typ %(target_type)s haben, aber der Typ ist %(actual_type)s",
+            "Das Feld %(field)s sollte den Typ %(target_type)s haben, aber der"
+            "Typ ist %(actual_type)s",
             None,
         ),
         "field.is_required": ("Das Feld %(field)s muss ausgefüllt sein", None),

@@ -13,19 +13,19 @@ class TestSheet(unittest.TestCase):
         class AlbumSheet(BaseSheet):
             pass
 
-        with self.assertRaises(ImproperlyConfigured) as error:
+        with self.assertRaises(ImproperlyConfigured):
             AlbumSheet(path="test")
 
     def test_path_or_file(self):
         class AlbumSheet(BaseSheet):
             pass
 
-        with self.assertRaises(ImproperlyConfigured) as error:
+        with self.assertRaises(ImproperlyConfigured):
             AlbumSheet(path="test")
 
     def test_no_header_rows(self):
         class AlbumSheet(BaseSheet):
             header_rows = 0
 
-        with self.assertRaises(ImproperlyConfigured) as error:
+        with self.assertRaises(ImproperlyConfigured):
             AlbumSheet(path="test")

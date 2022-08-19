@@ -1,7 +1,5 @@
 import logging
 
-from .exceptions import TranslationMissing
-
 EN = "en"
 DE = "de"
 
@@ -29,7 +27,8 @@ def translate(key, language=default_language(), params={}):
         translation_string, comment = messages[language][key]
     except KeyError:
         logging.getLogger(__name__).info(
-            f"Language is supported, but translation not found. Falling back to {default_lang}"
+            f"Language is supported, but translation not found."
+            f"Falling back to {default_lang}"
         )
         translation_string, comment = messages[default_lang][key]
 

@@ -38,8 +38,6 @@ setup(
     packages=find_packages(where="src"),
     python_requires=">=3.6, <4",
     install_requires=["openpyxl>=3"],
-    use_scm_version=True,
-    setup_requires=["setuptools_scm"],
     extras_require={
         "dev": ["pre-commit"],
         "test": ["coverage"],
