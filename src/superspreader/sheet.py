@@ -1,4 +1,3 @@
-import os
 from abc import ABC
 
 from openpyxl import load_workbook
@@ -12,27 +11,21 @@ class BaseSheet(ABC):
     sheet_name = None
     label_row = None
 
-    def __init__(self, path=None, file=None):
+    def __init__(self, path):
         self.path = path
-        self.file = file
         self._fields = self._build_fields()
         self._rows = []
         self._infos = []
         self._errors = []
 
-        self.check()
-
-    def check(self):
-        if self.get_header_rows() < 1:
-            raise ImproperlyConfigured("Sheets must have at least one header row")
-
-        if self.path is None and self.file is None:
-            raise ImproperlyConfigured("Either path or file has to be passed")
-
-        if not self.sheet_name:
-            raise ImproperlyConfigured("No sheet name set")
+        self._check()
 
     def shall_skip(self, row: dict):
+        """
+        Indicates whether to skip a row. It return True (i.e. skip) if there’s at least one truthy field.
+        :param row: A dictionary representing a row
+        :return: boolean, skip or not
+        """
         values = row.values()
         # When there’s at least one truthy value, don’t skip.
         if any(values):
@@ -40,6 +33,10 @@ class BaseSheet(ABC):
         return True
 
     def load(self):
+        """
+        Loads the spreadsheet and map its contents to dicts.
+        :return:
+        """
         header_rows = self.get_header_rows()
         fields = self._fields
         sheet = self.__get_sheet()
@@ -48,13 +45,12 @@ class BaseSheet(ABC):
             return
 
         column_map = self.__column_map(sheet)
-        self.__check_column_map(column_map)
+        self.__check_columns_present(column_map)
 
         if self.has_errors:
             return
 
         for row_index, row_cells in enumerate(sheet.iter_rows(min_row=header_rows + 1)):
-
             row_dict = {}
             error_cache = []
             for name, field in fields.items():
@@ -78,23 +74,27 @@ class BaseSheet(ABC):
                 self._add_errors(error_cache)
 
     def get_sheet_name(self):
+        """
+        Gets the sheet
+        :return: str
+        """
         return self.sheet_name
 
     def get_header_rows(self):
+        """
+        Gets the number of header rows
+        :return: int
+        """
         return self.header_rows
 
     def get_label_row(self):
+        """
+        Gets the index of the row that contains column labels
+        :return: int
+        """
         if self.label_row:
             return self.label_row
         return self.get_header_rows() - 1
-
-    def get_file(self):
-        if not self.file:
-            if os.path.exists(self.path):
-                self.file = open(self.path, "r")
-            else:
-                raise ValueError("%s is not a file" % self.path)
-        return self.file
 
     @property
     def errors(self):
@@ -112,14 +112,6 @@ class BaseSheet(ABC):
     def has_infos(self):
         return len(self._infos) > 0
 
-    def __enter__(self):
-        if not self.file:
-            self.get_file()
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        if self.file:
-            self.file.close()
-
     def __getitem__(self, item):
         if item < 0 or (item > len(self) - 1):
             raise IndexError()
@@ -129,7 +121,11 @@ class BaseSheet(ABC):
     def __len__(self):
         return len(self._rows)
 
-    def _build_fields(self):
+    #
+    # === Protected ===
+    #
+
+    def _build_fields(self) -> dict:
         fields = {}
         for attr, field in self.__class__.__dict__.items():
             if isinstance(field, BaseField):
@@ -137,13 +133,13 @@ class BaseSheet(ABC):
 
         return fields
 
-    def _add_error(self, message, index=None):
+    def _add_error(self, message, index=None) -> None:
         # Add to row index, if it’s related to a row.
         if isinstance(index, int):
             message = f"Row {index + 2}: {message}"
         self._errors.append(message)
 
-    def _add_errors(self, errors):
+    def _add_errors(self, errors) -> None:
         for error in errors:
             if isinstance(error, tuple):
                 error_len = len(error)
@@ -156,13 +152,43 @@ class BaseSheet(ABC):
             else:
                 self._add_error(error)
 
-    def _add_info(self, message, index=None):
+    def _add_info(self, message, index=None) -> None:
         # Add to row index, if it’s related to a row.
         if isinstance(index, int):
             message = f"Row {index + 1}: {message}"
         self._infos.append(message)
 
-    def __column_map(self, sheet):
+    def _check(self) -> None:
+        """
+        Perform configuration checks. Add your own in subclasses
+        :raises ImproperlyConfigured
+        """
+        if self.get_header_rows() < 1:
+            raise ImproperlyConfigured("Sheets must have at least one header row")
+
+        if not self.sheet_name:
+            raise ImproperlyConfigured("No sheet name set")
+
+    #
+    # === Private ===
+    #
+
+    def __column_map(self, sheet) -> dict:
+        """
+        Takes a sheet and returns a dictionary, that maps column names to column indexes.
+
+        Example:
+        ```
+        {
+            "Artist": 0,
+            "Album": 1,
+            "Release Date": 2
+        }
+        ```
+
+        :param sheet: Worksheet from openpyxl
+        :return: A dictionary that maps column names to indexes
+        """
         column_map = {}
         label_row = self.get_label_row()
 
@@ -173,7 +199,13 @@ class BaseSheet(ABC):
 
         return column_map
 
-    def __check_column_map(self, column_map):
+    def __check_columns_present(self, column_map) -> None:
+        """
+        Checks whether the columns (described by the source attribute of fields) are present.
+        Missing columns are added to error list.
+
+        :param column_map: The column map
+        """
         fields = self._build_fields()
         used_fields = set([field.source for field in fields.values()])
         all_fields = set(column_map.keys())
