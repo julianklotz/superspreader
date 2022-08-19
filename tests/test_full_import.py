@@ -5,7 +5,8 @@
 import datetime
 import unittest
 
-from superspreader.sheet import BaseSheet, fields
+from superspreader import fields
+from superspreader.sheets import BaseSheet
 
 
 class AlbumSheet(BaseSheet):
