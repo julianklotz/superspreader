@@ -4,6 +4,7 @@ from openpyxl import load_workbook
 
 from .exceptions import ImproperlyConfigured, ValidationException
 from .fields import BaseField
+from .i18n import translate as _
 
 
 class BaseSheet(ABC):
@@ -11,7 +12,8 @@ class BaseSheet(ABC):
     sheet_name = None
     label_row = None
 
-    def __init__(self, path):
+    def __init__(self, path, locale="en"):
+        self.locale = locale
         self.path = path
         self._fields = self._build_fields()
         self._rows = []
@@ -59,7 +61,7 @@ class BaseSheet(ABC):
                 try:
                     cell = row_cells[cell_index]
                     try:
-                        row_dict[name] = field(cell.value)
+                        row_dict[name] = field(cell.value, self.locale)
                     except ValidationException as error:
                         row_dict[name] = None
                         error_cache.append((str(error), row_index + header_rows))
@@ -67,6 +69,7 @@ class BaseSheet(ABC):
                     pass
 
             if self.shall_skip(row_dict):
+
                 self._add_info(f"Skipped row", index=row_index + header_rows)
                 continue
             else:
@@ -136,7 +139,11 @@ class BaseSheet(ABC):
     def _add_error(self, message, index=None) -> None:
         # Add to row index, if it’s related to a row.
         if isinstance(index, int):
-            message = f"Row {index + 2}: {message}"
+            message = _(
+                "sheet.row_info",
+                self.locale,
+                params={"row": index + 2, "message": message},
+            )
         self._errors.append(message)
 
     def _add_errors(self, errors) -> None:
@@ -155,7 +162,11 @@ class BaseSheet(ABC):
     def _add_info(self, message, index=None) -> None:
         # Add to row index, if it’s related to a row.
         if isinstance(index, int):
-            message = f"Row {index + 1}: {message}"
+            message = _(
+                "sheet.row_info",
+                self.locale,
+                params={"row": index + 2, "message": message},
+            )
         self._infos.append(message)
 
     def _check(self) -> None:
@@ -212,7 +223,8 @@ class BaseSheet(ABC):
 
         for field in used_fields:
             if field not in all_fields:
-                self._add_error(f"Field {field} is missing in sheet")
+                msg = _("sheet.column_missing", self.locale, params={"column": field})
+                self._add_error(msg)
 
     def __get_sheet(self):
         wb = load_workbook(filename=self.path)
@@ -221,4 +233,5 @@ class BaseSheet(ABC):
         try:
             return wb[sheet_name]
         except KeyError:
-            self._add_error(f"There’s no sheet {sheet_name} in spreadsheet {self.path}")
+            msg = _("sheet.sheet_missing", self.locale, params={"sheet": sheet_name})
+            self._add_error(msg)

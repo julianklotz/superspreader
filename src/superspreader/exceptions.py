@@ -16,3 +16,7 @@ class ImproperlyConfigured(BaseException):
 
 class ValidationException(BaseException):
     pass
+
+
+class TranslationMissing(BaseException):
+    pass

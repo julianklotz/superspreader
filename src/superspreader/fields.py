@@ -2,6 +2,7 @@ import datetime
 from abc import ABC
 
 from .exceptions import ImproperlyConfigured, ValidationException
+from .i18n import translate as _
 
 
 class BaseField(ABC):
@@ -10,10 +11,13 @@ class BaseField(ABC):
     def __init__(self, source, required=True):
         self.source = source
         self.required = required
+        self.locale = None
 
-    def __call__(self, value):
+    def __call__(self, value, locale):
+        self.locale = locale
         if not value and self.required is True:
-            raise ValidationException(f"Field {self.source} is required")
+            msg = _("field.is_required", params={"field": self.source})
+            raise ValidationException(msg)
 
         return self.clean(value)
 
@@ -27,9 +31,15 @@ class BaseField(ABC):
     def clean(self, value):
         desired_type = self.get_target_type()
         if value and not isinstance(value, desired_type):
-            raise ValidationException(
-                f"Field {self.source} should be a {self.target_type.__name__}, but it’s a {value.__class__}"
+            msg = _(
+                "field.wrong_type",
+                params={
+                    "field": self.source,
+                    "target_type": self.get_target_type().__name__,
+                    "actual_type": value.__class__.__name__,
+                },
             )
+            raise ValidationException(msg)
 
         return value
 

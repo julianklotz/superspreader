@@ -21,7 +21,7 @@ class TestSheet(unittest.TestCase):
             pass
 
         with self.assertRaises(ImproperlyConfigured) as error:
-            AlbumSheet()
+            AlbumSheet(path="test")
 
     def test_no_header_rows(self):
         class AlbumSheet(BaseSheet):
@@ -29,7 +29,3 @@ class TestSheet(unittest.TestCase):
 
         with self.assertRaises(ImproperlyConfigured) as error:
             AlbumSheet(path="test")
-
-
-if __name__ == "__main__":
-    unittest.main()

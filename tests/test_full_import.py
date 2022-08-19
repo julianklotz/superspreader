@@ -20,7 +20,7 @@ class AlbumSheet(BaseSheet):
     chart_position = fields.IntegerField(source="Chart Position")
 
 
-class TestFull(unittest.TestCase):
+class TestFullImport(unittest.TestCase):
     """
     Test the process of importing a whole spreadsheet
     """
@@ -33,9 +33,6 @@ class TestFull(unittest.TestCase):
         self.assertFalse(self.sheet.has_errors)
         self.assertEqual(len(self.sheet), 3)
 
-        print(self.sheet.infos)
-        print(self.sheet.errors)
-
     def test_record(self):
         self.sheet.load()
 
@@ -46,7 +43,3 @@ class TestFull(unittest.TestCase):
         self.assertEqual(first_record.get("release_date"), datetime.date(2022, 1, 7))
         self.assertEqual(first_record.get("average_review"), 4.3)
         self.assertEqual(first_record.get("chart_position"), 5)
-
-
-if __name__ == "__main__":
-    unittest.main()
