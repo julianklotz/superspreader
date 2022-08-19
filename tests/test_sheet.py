@@ -4,8 +4,8 @@
 
 import unittest
 
-from superspreader import BaseSheet
 from superspreader.exceptions import ImproperlyConfigured
+from superspreader.sheet import BaseSheet
 
 
 class TestSheet(unittest.TestCase):
