@@ -1,11 +1,36 @@
+import logging
+
 from .exceptions import TranslationMissing
-from .messages import messages
+
+EN = "en"
+DE = "de"
+
+SUPPORTED_LANGUAGES = (
+    EN,
+    DE,
+)
 
 
-def translate(key, locale="en", params={}):
+def default_language():
+    return SUPPORTED_LANGUAGES[0]
+
+
+def translate(key, language=default_language(), params={}):
+    from .messages import messages
+
+    default_lang = default_language()
+    if language not in SUPPORTED_LANGUAGES:
+        logging.getLogger(__name__).info(
+            f"Language {language} isn’t supported. Using {default_lang}"
+        )
+        language = default_lang
+
     try:
-        translation_string, comment = messages[locale][key]
-    except KeyError as error:
-        raise TranslationMissing(msg=str(error))
+        translation_string, comment = messages[language][key]
+    except KeyError:
+        logging.getLogger(__name__).info(
+            f"Language is supported, but translation not found. Falling back to {default_lang}"
+        )
+        translation_string, comment = messages[default_lang][key]
 
     return translation_string % params
