@@ -3,7 +3,9 @@
 # setup.py that excludes installing the "tests" package
 
 import datetime
+import os
 import unittest
+from pathlib import Path
 
 from superspreader import fields
 from superspreader.sheets import BaseSheet
@@ -27,7 +29,9 @@ class TestFullImport(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        self.sheet = AlbumSheet(path="./spreadsheets/albums.xlsx")
+        script_dir = Path(__file__).parent.absolute()
+        path = os.path.join(script_dir, "./spreadsheets/albums.xlsx")
+        self.sheet = AlbumSheet(path)
 
     def test_basics(self):
         self.sheet.load()

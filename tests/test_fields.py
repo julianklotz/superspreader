@@ -4,13 +4,13 @@ from superspreader.exceptions import ValidationException
 from superspreader.fields import BaseField
 
 
-class TestField(BaseField):
+class DummyField(BaseField):
     target_type = int
 
 
 class BaseFieldTestCase(unittest.TestCase):
     def test_required(self):
-        test_field = TestField(source="test")
+        test_field = DummyField(source="test")
 
         with self.assertRaises(ValidationException) as cm:
             test_field(None, "en")
@@ -22,7 +22,7 @@ class BaseFieldTestCase(unittest.TestCase):
         self.assertEqual(value, 666)
 
     def test_wrong_type(self):
-        test_field = TestField(source="test")
+        test_field = DummyField(source="test")
 
         with self.assertRaises(ValidationException) as cm:
             test_field("I’m a string", "en")
