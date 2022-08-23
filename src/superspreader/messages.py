@@ -8,7 +8,15 @@ messages = {
         ),
         "field.is_required": ("Field %(field)s is required", None),
         "field.timecode_parse_error": (
-            "Field %(field)s has an invalid format: %(timecode)s",
+            "Field %(field)s has an invalid format: %(_timecode)s",
+            None,
+        ),
+        "field.related_does_not_exist": (
+            "Related object identified by %(value)s on field %(field)s does not exist",
+            None,
+        ),
+        "field.related_multiple_objects_returned": (
+            "More than one related object identified by %(value)s on field %(field)s",
             None,
         ),
         "sheet.row_info": ("Row %(row)s: %(message)s", None),
@@ -23,7 +31,15 @@ messages = {
         ),
         "field.is_required": ("Das Feld %(field)s muss ausgefüllt sein", None),
         "field.timecode_parse_error": (
-            "Das Feld %(field)s hat ein ungültiges Format: %(timecode)s",
+            "Das Feld %(field)s hat ein ungültiges Format: %(_timecode)s",
+            None,
+        ),
+        "field.related_does_not_exist": (
+            "Ein Objekt mit %(value)s beim Feld %(field)s existiert nicht",
+            None,
+        ),
+        "field.related_multiple_objects_returned": (
+            "Mehr als ein Objekt mit %(value)s beim Feld %(field)s gefunden",
             None,
         ),
         "sheet.row_info": ("Zeile %(row)s: %(message)s", None),

@@ -8,13 +8,16 @@ from .i18n import translate as _
 
 class BaseField(ABC):
     target_type = None
+    check_type = True
 
     def __init__(self, source, required=True):
         self.source = source
         self.required = required
         self.locale = None
+        self.extra_context = None
 
-    def __call__(self, value, locale):
+    def __call__(self, value, locale, extra_context={}):
+        self.extra_context = extra_context
         self.locale = locale
         if value is None and self.required is True:
             msg = _("field.is_required", params={"field": self.source})
@@ -35,7 +38,7 @@ class BaseField(ABC):
 
         desired_type = self.get_target_type()
 
-        if not isinstance(value, desired_type):
+        if not isinstance(value, desired_type) and self.check_type is True:
             try:
                 value = desired_type(value)
             except ValueError:
@@ -80,20 +83,20 @@ class IntegerField(BaseField):
 
 class TimecodeField(FloatField):
     """
-    Parse timecode values like 00:13:06,9 to float value. This is commonly
+    Parse _timecode values like 00:13:06,9 to float value. This is commonly
     used in video and audio processing.
     """
 
     def clean(self, value):
         if isinstance(value, str):
-            value = self.duration_to_seconds(value)
+            value = self._timecode(value)
 
         return super().clean(value)
 
-    def duration_to_seconds(self, duration_string):
-        duration_string = duration_string.strip()
-        duration_regex = re.compile(r"^(\d{1,2}):(\d{1,2}):(\d{1,2})([-,](\d))?$")
-        matches = duration_regex.match(duration_string)
+    def _timecode(self, timecode_string):
+        timecode_string = timecode_string.strip()
+        timecode_regex = re.compile(r"^(\d{1,2}):(\d{1,2}):(\d{1,2})([-,](\d))?$")
+        matches = timecode_regex.match(timecode_string)
 
         try:
             hours = int(matches.group(1))
@@ -108,7 +111,7 @@ class TimecodeField(FloatField):
         except Exception:
             msg = _(
                 "field.timecode_parse_error",
-                params={"timecode": duration_string, "field": self.source},
+                params={"_timecode": timecode_string, "field": self.source},
             )
             raise ValidationException(msg)
 
