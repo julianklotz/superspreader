@@ -1,7 +1,7 @@
 import unittest
 
 from superspreader.exceptions import ValidationException
-from superspreader.fields import BaseField
+from superspreader.fields import BaseField, TimecodeField
 
 
 class DummyField(BaseField):
@@ -17,6 +17,9 @@ class BaseFieldTestCase(unittest.TestCase):
 
         self.assertEqual(cm.exception.msg, "Field test is required")
 
+        test_field = DummyField(source="test", required=False)
+        self.assertEqual(test_field(None, locale="en"), None)
+
         # Reverse case.
         value = test_field(666, "en")
         self.assertEqual(value, 666)
@@ -30,3 +33,16 @@ class BaseFieldTestCase(unittest.TestCase):
         self.assertEqual(
             cm.exception.msg, "Field test should be of type int, but it’s of type str"
         )
+
+    def test_timecode_field(self):
+        test_field = TimecodeField(source="test")
+        timecode_str = "00:13:06,9"
+        invalid_timecode_str = "asdf123"
+
+        value = test_field(timecode_str, locale="en")
+        self.assertEqual(value, 786.9)
+
+        with self.assertRaises(ValidationException) as cm:
+            test_field(invalid_timecode_str, locale="en")
+
+        self.assertEqual(cm.exception.msg, "Field test has an invalid format: asdf123")
