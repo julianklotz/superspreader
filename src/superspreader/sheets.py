@@ -230,7 +230,7 @@ class BaseSheet(ABC):
                 self._add_error(msg)
 
     def __get_sheet(self):
-        wb = load_workbook(filename=self.path)
+        wb = load_workbook(filename=self.path, data_only=True)
         sheet_name = self.get_sheet_name()
 
         try:

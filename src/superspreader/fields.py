@@ -1,4 +1,5 @@
 import datetime
+import re
 from abc import ABC
 
 from .exceptions import ImproperlyConfigured, ValidationException
@@ -15,7 +16,7 @@ class BaseField(ABC):
 
     def __call__(self, value, locale):
         self.locale = locale
-        if not value and self.required is True:
+        if value is None and self.required is True:
             msg = _("field.is_required", params={"field": self.source})
             raise ValidationException(msg)
 
@@ -29,17 +30,24 @@ class BaseField(ABC):
         return self.target_type
 
     def clean(self, value):
+        if value is None:
+            return
+
         desired_type = self.get_target_type()
-        if value and not isinstance(value, desired_type):
-            msg = _(
-                "field.wrong_type",
-                params={
-                    "field": self.source,
-                    "target_type": self.get_target_type().__name__,
-                    "actual_type": value.__class__.__name__,
-                },
-            )
-            raise ValidationException(msg)
+
+        if not isinstance(value, desired_type):
+            try:
+                value = desired_type(value)
+            except ValueError:
+                msg = _(
+                    "field.wrong_type",
+                    params={
+                        "field": self.source,
+                        "target_type": self.get_target_type().__name__,
+                        "actual_type": value.__class__.__name__,
+                    },
+                )
+                raise ValidationException(msg)
 
         return value
 
@@ -68,3 +76,42 @@ class FloatField(BaseField):
 
 class IntegerField(BaseField):
     target_type = int
+
+
+class TimecodeField(FloatField):
+    """
+    Parse timecode values like 00:13:06,9 to float value. This is commonly
+    used in video and audio processing.
+    """
+
+    def clean(self, value):
+        if isinstance(value, str):
+            value = self.duration_to_seconds(value)
+
+        return super().clean(value)
+
+    def duration_to_seconds(self, duration_string):
+        duration_string = duration_string.strip()
+        duration_regex = re.compile(r"^(\d{1,2}):(\d{1,2}):(\d{1,2})([-,](\d))?$")
+        matches = duration_regex.match(duration_string)
+
+        try:
+            hours = int(matches.group(1))
+            minutes = int(matches.group(2))
+            seconds = int(matches.group(3))
+
+            millis = matches.group(5)
+            if millis:
+                millis = int(millis)
+            else:
+                millis = 0
+        except Exception:
+            msg = _(
+                "field.timecode_parse_error",
+                params={"timecode": duration_string, "field": self.source},
+            )
+            raise ValidationException(msg)
+
+        seconds = hours * 3600 + minutes * 60 + seconds + millis / 10
+
+        return seconds
