@@ -49,6 +49,12 @@ class TestFullImport(unittest.TestCase):
         self.assertEqual(first_record.get("average_review"), 4.3)
         self.assertEqual(first_record.get("chart_position"), 5)
 
+    def test_rows(self):
+        self.sheet.load()
+        rows = self.sheet.rows(exclude=["album"])
+        with self.assertRaises(KeyError):
+            rows[0]["album"]
+
     def test_extra_data(self):
         extra = {"test": "1-2-3"}
         sheet = AlbumSheet(self.path, extra_data=extra)

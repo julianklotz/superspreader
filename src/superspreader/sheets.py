@@ -31,6 +31,21 @@ class BaseSheet(ABC):
     def get_extra_data(self) -> dict:
         return self._extra_data.copy()
 
+    def rows(self, exclude=None):
+        """
+        :param exclude: Iterable of field names to exclude
+        :return: A list of row dicts
+        """
+
+        rows = self._rows.copy()
+
+        if exclude:
+            for record in rows:
+                for field in exclude:
+                    record.pop(field)
+
+        return rows
+
     def shall_skip(self, row: dict):
         """
         Indicates whether to skip a row. It return True (i.e. skip) if there’s
