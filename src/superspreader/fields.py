@@ -13,12 +13,12 @@ class BaseField(ABC):
     def __init__(self, source, required=True):
         self.source = source
         self.required = required
-        self.locale = None
+        self.language = None
         self.extra_context = None
 
-    def __call__(self, value, locale, extra_context={}):
+    def __call__(self, value, language, extra_context={}):
         self.extra_context = extra_context
-        self.locale = locale
+        self.language = language
         if value is None and self.required is True:
             msg = _("field.is_required", params={"field": self.source})
             raise ValidationException(msg)
@@ -47,14 +47,12 @@ class BaseField(ABC):
                     TypeError,
                     ValueError,
                 ):
-                    msg = _(
-                        "field.wrong_type",
-                        params={
-                            "field": self.source,
-                            "target_type": self.get_target_type().__name__,
-                            "actual_type": value.__class__.__name__,
-                        },
-                    )
+                    params = {
+                        "field": self.source,
+                        "target_type": self.get_target_type().__name__,
+                        "actual_type": value.__class__.__name__,
+                    }
+                    msg = _("field.wrong_type", params=params)
                     raise ValidationException(msg)
 
         return value

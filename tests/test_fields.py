@@ -18,7 +18,7 @@ class BaseFieldTestCase(unittest.TestCase):
         self.assertEqual(cm.exception.msg, "Field test is required")
 
         test_field = DummyField(source="test", required=False)
-        self.assertEqual(test_field(None, locale="en"), None)
+        self.assertEqual(test_field(None, language="en"), None)
 
         # Reverse case.
         value = test_field(666, "en")
@@ -39,10 +39,10 @@ class BaseFieldTestCase(unittest.TestCase):
         timecode_str = "00:13:06,9"
         invalid_timecode_str = "asdf123"
 
-        value = test_field(timecode_str, locale="en")
+        value = test_field(timecode_str, language="en")
         self.assertEqual(value, 786.9)
 
         with self.assertRaises(ValidationException) as cm:
-            test_field(invalid_timecode_str, locale="en")
+            test_field(invalid_timecode_str, language="en")
 
         self.assertEqual(cm.exception.msg, "Field test has an invalid format: asdf123")

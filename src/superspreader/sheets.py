@@ -12,15 +12,24 @@ class BaseSheet(ABC):
     sheet_name = None
     label_row = None
 
-    def __init__(self, path, locale="en"):
-        self.locale = locale
+    def __init__(self, path, language="en", extra_data=None):
+        self.language = language
         self.path = path
         self._fields = self._build_fields()
         self._rows = []
         self._infos = []
         self._errors = []
 
+        if extra_data is not None:
+            assert isinstance(extra_data, dict)
+            self._extra_data = extra_data
+        else:
+            self._extra_data = dict()
+
         self._check()
+
+    def get_extra_data(self) -> dict:
+        return self._extra_data.copy()
 
     def shall_skip(self, row: dict):
         """
@@ -35,11 +44,14 @@ class BaseSheet(ABC):
             return False
         return True
 
-    def load(self):
+    def load(self, extra_context=None):
         """
         Loads the spreadsheet and map its contents to dicts.
         :return:
         """
+        if extra_context is None:
+            extra_context = {}
+
         header_rows = self.get_header_rows()
         fields = self._fields
         sheet = self.__get_sheet()
@@ -56,7 +68,7 @@ class BaseSheet(ABC):
         min_row = header_rows + 1
 
         for row_index, row_cells in enumerate(sheet.iter_rows(min_row=min_row)):
-            row_dict = {}
+            row_dict = self.get_extra_data()
             error_cache = []
             for name, field in fields.items():
                 cell_index = column_map.get(field.source)
@@ -64,7 +76,11 @@ class BaseSheet(ABC):
                 try:
                     cell = row_cells[cell_index]
                     try:
-                        row_dict[name] = field(cell.value, self.locale)
+                        row_dict[name] = field(
+                            cell.value,
+                            language=self.language,
+                            extra_context=extra_context,
+                        )
                     except ValidationException as error:
                         row_dict[name] = None
                         error_cache.append((str(error), row_index + header_rows))
@@ -144,7 +160,7 @@ class BaseSheet(ABC):
         if isinstance(index, int):
             message = _(
                 "sheet.row_info",
-                self.locale,
+                self.language,
                 params={
                     "sheet": self.get_sheet_name(),
                     "row": index + 2,
@@ -171,7 +187,7 @@ class BaseSheet(ABC):
         if isinstance(index, int):
             message = _(
                 "sheet.row_info",
-                self.locale,
+                self.language,
                 params={
                     "sheet": self.get_sheet_name(),
                     "row": index + 2,
@@ -234,7 +250,7 @@ class BaseSheet(ABC):
 
         for field in used_fields:
             if field not in all_fields:
-                msg = _("sheet.column_missing", self.locale, params={"column": field})
+                msg = _("sheet.column_missing", self.language, params={"column": field})
                 self._add_error(msg)
 
     def __get_sheet(self):
@@ -244,5 +260,5 @@ class BaseSheet(ABC):
         try:
             return wb[sheet_name]
         except KeyError:
-            msg = _("sheet.sheet_missing", self.locale, params={"sheet": sheet_name})
+            msg = _("sheet.sheet_missing", self.language, params={"sheet": sheet_name})
             self._add_error(msg)

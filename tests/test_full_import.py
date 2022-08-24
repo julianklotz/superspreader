@@ -30,8 +30,8 @@ class TestFullImport(unittest.TestCase):
 
     def setUp(self) -> None:
         script_dir = Path(__file__).parent.absolute()
-        path = os.path.join(script_dir, "./spreadsheets/albums.xlsx")
-        self.sheet = AlbumSheet(path)
+        self.path = os.path.join(script_dir, "./spreadsheets/albums.xlsx")
+        self.sheet = AlbumSheet(self.path)
 
     def test_basics(self):
         self.sheet.load()
@@ -48,3 +48,11 @@ class TestFullImport(unittest.TestCase):
         self.assertEqual(first_record.get("release_date"), datetime.date(2022, 1, 7))
         self.assertEqual(first_record.get("average_review"), 4.3)
         self.assertEqual(first_record.get("chart_position"), 5)
+
+    def test_extra_data(self):
+        extra = {"test": "1-2-3"}
+        sheet = AlbumSheet(self.path, extra_data=extra)
+        sheet.load()
+        first_record = sheet[0]
+
+        self.assertEqual(first_record.get("test"), "1-2-3")
