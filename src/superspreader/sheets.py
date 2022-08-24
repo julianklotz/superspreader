@@ -145,7 +145,11 @@ class BaseSheet(ABC):
             message = _(
                 "sheet.row_info",
                 self.locale,
-                params={"row": index + 2, "message": message},
+                params={
+                    "sheet": self.get_sheet_name(),
+                    "row": index + 2,
+                    "message": message,
+                },
             )
         self._errors.append(message)
 
@@ -168,7 +172,11 @@ class BaseSheet(ABC):
             message = _(
                 "sheet.row_info",
                 self.locale,
-                params={"row": index + 2, "message": message},
+                params={
+                    "sheet": self.get_sheet_name(),
+                    "row": index + 2,
+                    "message": message,
+                },
             )
         self._infos.append(message)
 

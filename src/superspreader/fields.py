@@ -26,31 +26,36 @@ class BaseField(ABC):
         return self.clean(value)
 
     def get_target_type(self):
-        if self.target_type is None:
-            raise ImproperlyConfigured(
-                f"You have to specify a target type for {self.__class__.__name__}"
-            )
         return self.target_type
 
     def clean(self, value):
         if value is None:
             return
 
-        desired_type = self.get_target_type()
-
-        if not isinstance(value, desired_type) and self.check_type is True:
-            try:
-                value = desired_type(value)
-            except ValueError:
-                msg = _(
-                    "field.wrong_type",
-                    params={
-                        "field": self.source,
-                        "target_type": self.get_target_type().__name__,
-                        "actual_type": value.__class__.__name__,
-                    },
+        if self.check_type:
+            desired_type = self.get_target_type()
+            if desired_type is None:
+                raise ImproperlyConfigured(
+                    f"You have to specify a target type for"
+                    f" {self.__class__.__name__}"
                 )
-                raise ValidationException(msg)
+
+            if not isinstance(value, desired_type):
+                try:
+                    value = desired_type(value)
+                except (
+                    TypeError,
+                    ValueError,
+                ):
+                    msg = _(
+                        "field.wrong_type",
+                        params={
+                            "field": self.source,
+                            "target_type": self.get_target_type().__name__,
+                            "actual_type": value.__class__.__name__,
+                        },
+                    )
+                    raise ValidationException(msg)
 
         return value
 
