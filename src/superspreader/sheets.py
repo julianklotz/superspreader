@@ -4,6 +4,7 @@ from openpyxl import load_workbook
 
 from .exceptions import ImproperlyConfigured, ValidationException
 from .fields import BaseField
+from .i18n import EN
 from .i18n import translate as _
 
 
@@ -12,7 +13,7 @@ class BaseSheet(ABC):
     sheet_name = None
     label_row = None
 
-    def __init__(self, path, language="en", extra_data=None):
+    def __init__(self, path, language=EN, extra_data=None):
         self.language = language
         self.path = path
         self._fields = self._build_fields()
@@ -98,13 +99,12 @@ class BaseSheet(ABC):
                         )
                     except ValidationException as error:
                         row_dict[name] = None
-                        error_cache.append((str(error), row_index + header_rows))
+                        error_cache.append((str(error), row_index))
                 except KeyError:
                     pass
 
             if self.shall_skip(row_dict):
-
-                self._add_info("Skipped row", index=row_index + header_rows)
+                self._add_info("Skipped row", index=row_index)
                 continue
             else:
                 self._rows.append(row_dict)
@@ -178,7 +178,7 @@ class BaseSheet(ABC):
                 self.language,
                 params={
                     "sheet": self.get_sheet_name(),
-                    "row": index + 2,
+                    "row": index + 1 + self.get_header_rows(),
                     "message": message,
                 },
             )
@@ -205,7 +205,7 @@ class BaseSheet(ABC):
                 self.language,
                 params={
                     "sheet": self.get_sheet_name(),
-                    "row": index + 2,
+                    "row": index + 1 + self.get_header_rows(),
                     "message": message,
                 },
             )

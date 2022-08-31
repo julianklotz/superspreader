@@ -40,7 +40,6 @@ class TestFullImport(unittest.TestCase):
 
     def test_record(self):
         self.sheet.load()
-
         first_record = self.sheet[0]
 
         self.assertEqual(first_record.get("album"), "Toy")
