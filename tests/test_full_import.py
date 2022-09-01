@@ -28,10 +28,13 @@ class TestFullImport(unittest.TestCase):
     Test the process of importing a whole spreadsheet
     """
 
-    def setUp(self) -> None:
+    def _file_path(self, file_name):
         script_dir = Path(__file__).parent.absolute()
-        self.path = os.path.join(script_dir, "./spreadsheets/albums.xlsx")
-        self.sheet = AlbumSheet(self.path)
+        path = os.path.join(script_dir, "spreadsheets", file_name)
+        return path
+
+    def setUp(self) -> None:
+        self.sheet = AlbumSheet(self._file_path("albums.xlsx"))
 
     def test_basics(self):
         self.sheet.load()
@@ -54,10 +57,24 @@ class TestFullImport(unittest.TestCase):
         with self.assertRaises(KeyError):
             rows[0]["album"]
 
+    def test_info(self):
+        self.sheet.load()
+        self.assertEqual("Sheet Albums, row 6: Skipped row", self.sheet.infos[0])
+
     def test_extra_data(self):
         extra = {"test": "1-2-3"}
-        sheet = AlbumSheet(self.path, extra_data=extra)
+        sheet = AlbumSheet(self._file_path("albums.xlsx"), extra_fields=extra)
         sheet.load()
         first_record = sheet[0]
 
         self.assertEqual(first_record.get("test"), "1-2-3")
+
+    def test_errors(self):
+        path = self._file_path("albums_with_errors.xlsx")
+        sheet_with_errors = AlbumSheet(path)
+        sheet_with_errors.load()
+
+        self.assertTrue(sheet_with_errors.has_errors)
+        self.assertEqual(
+            sheet_with_errors.errors[0], "Sheet Albums, row 7: Field Album is required"
+        )

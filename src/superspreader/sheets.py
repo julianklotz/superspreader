@@ -13,7 +13,7 @@ class BaseSheet(ABC):
     sheet_name = None
     label_row = None
 
-    def __init__(self, path, language=EN, extra_data=None):
+    def __init__(self, path, language=EN, extra_fields=None):
         self.language = language
         self.path = path
         self._fields = self._build_fields()
@@ -21,16 +21,16 @@ class BaseSheet(ABC):
         self._infos = []
         self._errors = []
 
-        if extra_data is not None:
-            assert isinstance(extra_data, dict)
-            self._extra_data = extra_data
+        if extra_fields is not None:
+            assert isinstance(extra_fields, dict)
+            self._extra_fields = extra_fields
         else:
-            self._extra_data = dict()
+            self._extra_fields = dict()
 
         self._check()
 
     def get_extra_data(self) -> dict:
-        return self._extra_data.copy()
+        return self._extra_fields.copy()
 
     def rows(self, exclude=None):
         """
