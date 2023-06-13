@@ -1,13 +1,13 @@
 name: Test
 
-on: [ push, pull_request ]
+on: [push, pull_request]
 
 jobs:
   test:
     strategy:
       matrix:
-        python: [ '3.8', '3.9', '3.10' ]
-        platform: [ ubuntu-latest, macos-latest ]
+        python: ["3.8", "3.9", "3.10", "3.11"]
+        platform: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout

@@ -249,7 +249,7 @@ class BaseSheet(ABC):
             sheet.iter_cols(0, sheet.max_column, min_row=label_row, max_row=label_row)
         ):
             key = str(column[0].value).strip()
-            column_map[column[0].value] = index
+            column_map[key] = index
 
         return column_map
 
