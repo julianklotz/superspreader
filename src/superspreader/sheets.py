@@ -13,7 +13,7 @@ class BaseSheet(ABC):
     sheet_name = None
     label_row = None
 
-    def __init__(self, path, language=EN, extra_fields=None):
+    def __init__(self, path, language=EN, extra_data=None):
         self.language = language
         self.path = path
         self._fields = self._build_fields()
@@ -21,16 +21,28 @@ class BaseSheet(ABC):
         self._infos = []
         self._errors = []
 
-        if extra_fields is not None:
-            assert isinstance(extra_fields, dict)
-            self._extra_fields = extra_fields
+        if extra_data is not None:
+            assert isinstance(extra_data, dict)
+            self._extra_data = extra_data
         else:
-            self._extra_fields = dict()
+            self._extra_data = dict()
 
         self._check()
 
-    def get_extra_data(self) -> dict:
-        return self._extra_fields.copy()
+    def get_extra_data(self, row) -> dict:
+        """
+        Returns a dictionary with extra data. Values may be callable.
+        In this case, the function’s return value is used. The row dict is its
+        only argument.
+        """
+        data = self._extra_data.copy()
+
+        for key in data.keys():
+            if callable(data[key]):
+                # Call the function, pass row param
+                data[key] = data[key](row)
+
+        return data
 
     def rows(self, exclude=None):
         """
@@ -84,7 +96,7 @@ class BaseSheet(ABC):
         min_row = header_rows + 1
 
         for row_index, row_cells in enumerate(sheet.iter_rows(min_row=min_row)):
-            row_dict = self.get_extra_data()
+            row_dict = {}
             error_cache = []
             for name, field in fields.items():
                 cell_index = column_map.get(field.source)
@@ -102,12 +114,16 @@ class BaseSheet(ABC):
                         error_cache.append((str(error), row_index))
                 except KeyError:
                     pass
+            # Use extra data as a basis
+            full_dict = self.get_extra_data(row_dict)
+            # And update with “real” data, which takes precedence
+            full_dict.update(row_dict)
 
-            if self.shall_skip(row_dict):
+            if self.shall_skip(full_dict):
                 self._add_info("Skipped row", index=row_index)
                 continue
             else:
-                self._rows.append(row_dict)
+                self._rows.append(full_dict)
                 self._add_errors(error_cache)
 
     def get_sheet_name(self):

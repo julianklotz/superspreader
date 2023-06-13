@@ -63,7 +63,7 @@ class TestFullImport(unittest.TestCase):
 
     def test_extra_data(self):
         extra = {"test": "1-2-3"}
-        sheet = AlbumSheet(self._file_path("albums.xlsx"), extra_fields=extra)
+        sheet = AlbumSheet(self._file_path("albums.xlsx"), extra_data=extra)
         sheet.load()
         first_record = sheet[0]
 
