@@ -248,6 +248,7 @@ class BaseSheet(ABC):
         for index, column in enumerate(
             sheet.iter_cols(0, sheet.max_column, min_row=label_row, max_row=label_row)
         ):
+            # Retrieve and sanitize the column name from a header cell
             key = str(column[0].value).strip()
             column_map[key] = index
 

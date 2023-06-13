@@ -8,17 +8,28 @@ from .i18n import translate as _
 
 class BaseField(ABC):
     target_type = None
-    check_type = True
+    default = None
+    cast_type = True
 
-    def __init__(self, source, required=True):
+    def __init__(self, source, required=True, default=None):
         self.source = source
         self.required = required
         self.language = None
         self.extra_context = None
 
-    def __call__(self, value, language, extra_context={}):
+        if default is not None:
+            self.default = default
+
+    def __call__(self, value, language, extra_context=None):
+        if extra_context is None:
+            extra_context = {}
+
         self.extra_context = extra_context
         self.language = language
+
+        if value is None:
+            value = self.get_default()
+
         if value is None and self.required is True:
             msg = _("field.is_required", params={"field": self.source})
             raise ValidationException(msg)
@@ -26,13 +37,24 @@ class BaseField(ABC):
         return self.clean(value)
 
     def get_target_type(self):
+        """
+        The field value’s desired type, used for casting primitive types.
+        In more advanced cases, disable type casting (cast_type=False) and implement
+        your own logic in `clean`.
+        """
         return self.target_type
+
+    def get_default(self):
+        """
+        Gets the default value for the field
+        """
+        return self.default
 
     def clean(self, value):
         if value is None:
             return
 
-        if self.check_type:
+        if self.cast_type:
             desired_type = self.get_target_type()
             if desired_type is None:
                 raise ImproperlyConfigured(
