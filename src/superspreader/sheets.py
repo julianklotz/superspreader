@@ -180,9 +180,13 @@ class BaseSheet(ABC):
 
     def _build_fields(self) -> dict:
         fields = {}
-        for attr, field in self.__class__.__dict__.items():
-            if isinstance(field, BaseField):
-                fields[attr] = field
+
+        bases = self.__class__.mro()
+
+        for base in bases:
+            for attr, field in vars(base).items():
+                if isinstance(field, BaseField):
+                    fields[attr] = field
 
         return fields
 
