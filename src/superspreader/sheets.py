@@ -114,15 +114,16 @@ class BaseSheet(ABC):
                         error_cache.append((str(error), row_index))
                 except KeyError:
                     pass
-            # Use extra data as a basis
-            full_dict = self.get_extra_data(row_dict)
-            # And update with “real” data, which takes precedence
-            full_dict.update(row_dict)
 
-            if self.shall_skip(full_dict):
+            # Evaluate before adding extra data
+            if self.shall_skip(row_dict):
                 self._add_info("Skipped row", index=row_index)
                 continue
             else:
+                # Use extra data as a basis
+                full_dict = self.get_extra_data(row_dict)
+                # And update with “real” data, which takes precedence
+                full_dict.update(row_dict)
                 self._rows.append(full_dict)
                 self._add_errors(error_cache)
 
