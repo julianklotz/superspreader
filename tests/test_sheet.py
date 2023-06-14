@@ -8,8 +8,6 @@ from superspreader.exceptions import ImproperlyConfigured
 from superspreader.sheets import BaseSheet
 from superspreader import fields
 
-
-
 class TestSheet(unittest.TestCase):
     def test_sheet_name(self):
         class AlbumSheet(BaseSheet):
@@ -44,6 +42,3 @@ class TestSheet(unittest.TestCase):
         sheet_fields = sheet._build_fields()
 
         self.assertTrue('a_field' in sheet_fields)
-
-
-
