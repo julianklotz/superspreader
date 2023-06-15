@@ -15,7 +15,7 @@ class BaseFieldTestCase(unittest.TestCase):
         with self.assertRaises(ValidationException) as cm:
             test_field(None, "en")
 
-        self.assertEqual(cm.exception.msg, "Field test is required")
+        self.assertEqual(cm.exception.msg, "“test” is required")
 
         test_field = DummyField(source="test", required=False)
         self.assertEqual(test_field(None, language="en"), None)
@@ -31,7 +31,7 @@ class BaseFieldTestCase(unittest.TestCase):
             test_field("I’m a string", "en")
 
         self.assertEqual(
-            cm.exception.msg, "Field test should be of type int, but it’s of type str"
+            cm.exception.msg, "“test” should be of type int, but it’s of type str"
         )
 
     def test_timecode_field(self):
@@ -45,4 +45,4 @@ class BaseFieldTestCase(unittest.TestCase):
         with self.assertRaises(ValidationException) as cm:
             test_field(invalid_timecode_str, language="en")
 
-        self.assertEqual(cm.exception.msg, "Field test has an invalid format: asdf123")
+        self.assertEqual(cm.exception.msg, "“test” has an invalid format: asdf123")

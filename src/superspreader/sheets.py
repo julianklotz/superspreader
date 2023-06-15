@@ -198,7 +198,6 @@ class BaseSheet(ABC):
                 "sheet.row_info",
                 self.language,
                 params={
-                    "sheet": self.get_sheet_name(),
                     "row": index + 1 + self.get_header_rows(),
                     "message": message,
                 },
@@ -225,7 +224,6 @@ class BaseSheet(ABC):
                 "sheet.row_info",
                 self.language,
                 params={
-                    "sheet": self.get_sheet_name(),
                     "row": index + 1 + self.get_header_rows(),
                     "message": message,
                 },

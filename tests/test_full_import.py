@@ -60,7 +60,7 @@ class TestFullImport(unittest.TestCase):
 
     def test_info(self):
         self.sheet.load()
-        self.assertEqual("Sheet Albums, row 6: Skipped row", self.sheet.infos[0])
+        self.assertEqual("Row 6: Skipped row", self.sheet.infos[0])
 
     def test_errors(self):
         path = self._file_path("albums_with_errors.xlsx")
@@ -68,9 +68,7 @@ class TestFullImport(unittest.TestCase):
         sheet_with_errors.load()
 
         self.assertTrue(sheet_with_errors.has_errors)
-        self.assertEqual(
-            sheet_with_errors.errors[0], "Sheet Albums, row 7: Field Album is required"
-        )
+        self.assertEqual(sheet_with_errors.errors[0], "Row 7: “Album” is required")
 
     def test_empty_sheet_with_extra_data(self):
         """Tests whether empty rows are skipped, even when extra data is provided"""
