@@ -60,9 +60,9 @@ In `tests/spreadsheets` is a sample spreadsheet that is used for testing. Feel f
 
 There’s a lot more to say and I’ll update the documentation as I go.
 
-## Adding non-spreadsheet fields
+## Adding static & dynamic data to rows
 
-To provide additional fields, use `extra_data`. Fields from the spreadsheet take precedence over extra data.
+To provide additional data, use `extra_data`. Data from the spreadsheet take precedence over extra data.
 
 ```
 extra_data = {
@@ -77,11 +77,11 @@ Use a callable for dynamic extra data:
 
 ```
 extra_data = {
-    "summary": lambda row: f"{row.get('album')} by {row.get('artist')}"
+    "summary": lambda row: f"“{row.get('album')}” by {row.get('artist')}"
 }
 
 sheet = AlbumSheet("albums.xlsx", extra_data=extra_data)
-# {'artist': 'David Bowie', 'album': 'Toy', 'release_date': datetime.date(2022, 1, 7), 'average_review': 4.3, 'chart_position': 5, 'summary': 'Toy by David Bowie'}
+# {'artist': 'David Bowie', 'album': 'Toy', 'release_date': datetime.date(2022, 1, 7), 'average_review': 4.3, 'chart_position': 5, 'summary': '“Toy” by David Bowie'}
 ```
 
 ## Changelog
@@ -92,7 +92,11 @@ sheet = AlbumSheet("albums.xlsx", extra_data=extra_data)
 
 ### 0.2.2
 
-- Adds support for callables in `extra_data``
+- Adds support for callables in `extra_data`
+
+### 0.2.1
+
+- Adds support for providing field defaults by setting the `default` attribute or providing an instance-label value: `fields.CharField(source="Album", default="not specified")`
 
 ---
 

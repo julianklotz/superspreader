@@ -6,6 +6,7 @@ import datetime
 import os
 import unittest
 from pathlib import Path
+from unittest.mock import MagicMock
 
 from superspreader import fields
 from superspreader.sheets import BaseSheet
@@ -25,12 +26,12 @@ class AlbumSheet(BaseSheet):
 
 class TestFullImport(unittest.TestCase):
     """
-    Test the process of importing a whole spreadsheet
+    Test the process of importing a spreadsheet
     """
 
     def _file_path(self, file_name):
-        script_dir = Path(__file__).parent.absolute()
-        path = os.path.join(script_dir, "spreadsheets", file_name)
+        tests_dir = Path(__file__).parent.absolute()
+        path = os.path.join(tests_dir, "spreadsheets", file_name)
         return path
 
     def setUp(self) -> None:
@@ -61,14 +62,6 @@ class TestFullImport(unittest.TestCase):
         self.sheet.load()
         self.assertEqual("Sheet Albums, row 6: Skipped row", self.sheet.infos[0])
 
-    def test_extra_data(self):
-        extra = {"test": "1-2-3"}
-        sheet = AlbumSheet(self._file_path("albums.xlsx"), extra_data=extra)
-        sheet.load()
-        first_record = sheet[0]
-
-        self.assertEqual(first_record.get("test"), "1-2-3")
-
     def test_errors(self):
         path = self._file_path("albums_with_errors.xlsx")
         sheet_with_errors = AlbumSheet(path)
@@ -78,3 +71,35 @@ class TestFullImport(unittest.TestCase):
         self.assertEqual(
             sheet_with_errors.errors[0], "Sheet Albums, row 7: Field Album is required"
         )
+
+    def test_empty_sheet_with_extra_data(self):
+        """Tests whether empty rows are skipped, even when extra data is provided"""
+        path = self._file_path("albums_empty.xlsx")
+        sheet = AlbumSheet(path, extra_data={"status": "released"})
+        self.assertFalse(sheet.has_errors)
+        self.assertEqual(len(sheet), 0)
+
+    def test_extra_data_static(self):
+        """Tests whether extra data is returned in the resulting row"""
+        fp = self._file_path("albums.xlsx")
+        sheet = AlbumSheet(path=fp, extra_data={"status": "released"})
+        sheet.load()
+        self.assertEqual(sheet.rows()[0].get("status"), "released")
+
+    def test_extra_data_dynamic(self):
+        """Tests whether callables in extra data are called"""
+        fp = self._file_path("albums.xlsx")
+        test_fn = MagicMock()
+        sheet = AlbumSheet(path=fp, extra_data={"test_fn": test_fn})
+        sheet.load()
+        test_fn.assert_called()
+
+    def test_extra_data_dynamic_args(self):
+        """Tests whether callables in extra data are called with the row"""
+        fp = self._file_path("albums.xlsx")
+
+        def test_fn(row):
+            self.assertIsInstance(row, dict)
+
+        sheet = AlbumSheet(path=fp, extra_data={"test_fn": test_fn})
+        sheet.load()
