@@ -11,9 +11,18 @@ class BaseField(ABC):
     default = None
     cast_type = True
 
-    def __init__(self, source, required=True, default=None):
+    def __init__(self, source, required=True, default=None, unique=False):
+        """
+        :param str source: The column name from the spreadsheet
+        :param bool required: Indicates whether a non-`None` value is required.
+                              Ignored when a default value is provided.
+        :param any default: The default value to use
+        :param bool unique: Indicates whether values must be unique
+        """
         self.source = source
         self.required = required
+        self.unique = unique
+
         self.language = None
         self.extra_context = None
 

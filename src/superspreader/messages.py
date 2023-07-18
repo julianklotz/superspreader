@@ -22,6 +22,10 @@ messages = {
         "sheet.row_info": ("Row %(row)s: %(message)s", None),
         "sheet.column_missing": ("Column “%(column)s” not present in sheet", None),
         "sheet.sheet_missing": ("Sheet “%(sheet)s” not present in document", None),
+        "sheet.unique_violation": (
+            "“%(column)s” must contain unique values only, but “%(value)s” occurs %(total)i times",
+            None,
+        ),
     },
     DE: {
         "field.wrong_type": (
@@ -45,5 +49,9 @@ messages = {
         "sheet.row_info": ("Zeile %(row)s: %(message)s", None),
         "sheet.column_missing": ("Die Spalte „%(column)s“ fehlt im Blatt", None),
         "sheet.sheet_missing": ("Das Blatt „%(sheet)s“ ist nicht vorhanden", None),
+        "sheet.unique_violation": (
+            "„%(column)s“ darf nur eindeutige Werte enthalten, „%(value)s“ kommt aber %(total)i mal vor",
+            None,
+        ),
     },
 }

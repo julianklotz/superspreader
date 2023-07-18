@@ -60,6 +60,10 @@ In `tests/spreadsheets` is a sample spreadsheet that is used for testing. Feel f
 
 There’s a lot more to say and I’ll update the documentation as I go.
 
+## Field params
+
+Fields must have a `source`”`parameter, that holds the column name for the spreadsheet.`unique=True` may be used to indicate that a field’s value must be unique.
+
 ## Adding static & dynamic data to rows
 
 To provide additional data, use `extra_data`. Data from the spreadsheet take precedence over extra data.
@@ -85,6 +89,10 @@ sheet = AlbumSheet("albums.xlsx", extra_data=extra_data)
 ```
 
 ## Changelog
+
+### 0.2.7
+
+- Adds support for unique validation
 
 ### 0.2.3
 

@@ -7,9 +7,17 @@ import unittest
 from superspreader import fields
 from superspreader.exceptions import ImproperlyConfigured
 from superspreader.sheets import BaseSheet
+from tests import file_path
 
 
-class TestSheet(unittest.TestCase):
+class ContactSheet(BaseSheet):
+    sheet_name = "Contacts"
+
+    id = fields.CharField(source="ID", unique=True)
+    name = fields.CharField(source="Name")
+
+
+class SheetTestCase(unittest.TestCase):
     def test_sheet_name(self):
         class AlbumSheet(BaseSheet):
             pass
@@ -43,3 +51,17 @@ class TestSheet(unittest.TestCase):
         sheet_fields = sheet._build_fields()
 
         self.assertTrue("a_field" in sheet_fields)
+
+    def test_unique_violation(self):
+        """
+        Tests whether unique fields are validate properly
+        """
+        path = file_path("contacts_duplicates.xlsx")
+        sheet = ContactSheet(path)
+        sheet.load()
+
+        self.assertEqual(len(sheet.errors), 1)
+        self.assertEqual(
+            sheet.errors[0],
+            "“ID” must contain unique values only, but “1” occurs 1 times",
+        )

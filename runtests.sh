@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
 # Any arguments are passed to unittest
-python -m unittest "$@"
+python -m unittest discover tests "$@"

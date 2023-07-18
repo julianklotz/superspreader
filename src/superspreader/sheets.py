@@ -127,6 +127,8 @@ class BaseSheet(ABC):
                 self._rows.append(full_dict)
                 self._add_errors(error_cache)
 
+        self._validate_unique_fields()
+
     def get_sheet_name(self):
         """
         Gets the sheet
@@ -230,6 +232,24 @@ class BaseSheet(ABC):
             )
         self._infos.append(message)
 
+    def _validate_unique_fields(self):
+        for name, field in self._fields.items():
+            if field.unique is True:
+                self._validate_unique_field(name, field.source)
+
+    def _validate_unique_field(self, field_name, column_name):
+        values = list(map(lambda row: row.get(field_name), self._rows))
+        distinct_values = set(values)
+
+        for value in distinct_values:
+            if total := values.count(value) > 1:
+                msg = _(
+                    "sheet.unique_violation",
+                    self.language,
+                    params={"column": column_name, "value": value, "total": total},
+                )
+                self._add_error(msg)
+
     def _check(self) -> None:
         """
         Perform configuration checks. Add your own in subclasses
@@ -280,8 +300,7 @@ class BaseSheet(ABC):
 
         :param column_map: The column map
         """
-        fields = self._build_fields()
-        used_fields = set([field.source for field in fields.values()])
+        used_fields = set([field.source for field in self._fields.values()])
         all_fields = set(column_map.keys())
 
         for field in used_fields:
