@@ -3,12 +3,19 @@
 # setup.py that excludes installing the "tests" package
 
 import datetime
+import os
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock
 
 from superspreader import fields
 from superspreader.sheets import BaseSheet
-from tests import file_path
+
+
+def file_path(file_name):
+    tests_dir = Path(__file__).parent.absolute()
+    path = os.path.join(tests_dir, "spreadsheets", file_name)
+    return path
 
 
 class AlbumSheet(BaseSheet):
