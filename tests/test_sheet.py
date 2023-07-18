@@ -70,5 +70,5 @@ class SheetTestCase(unittest.TestCase):
         self.assertEqual(len(sheet.errors), 1)
         self.assertEqual(
             sheet.errors[0],
-            "“ID” must contain unique values only, but “1” occurs 1 times",
+            "“ID” must contain unique values only, but “1” occurs 2 times",
         )

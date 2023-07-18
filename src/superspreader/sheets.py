@@ -242,7 +242,8 @@ class BaseSheet(ABC):
         distinct_values = set(values)
 
         for value in distinct_values:
-            if total := values.count(value) > 1:
+            total = values.count(value)
+            if total > 1:
                 msg = _(
                     "sheet.unique_violation",
                     self.language,
